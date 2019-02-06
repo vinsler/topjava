@@ -3,11 +3,11 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExceed;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -24,8 +24,35 @@ public class UserMealsUtil {
 //        .toLocalTime();
     }
 
-    public static List<UserMealWithExceed>  getFilteredWithExceeded(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with correctly exceeded field
-        return null;
+// Meal = Food = Еда;  Exceed = Limit = Превышение;
+
+    public static List<UserMealWithExceed>  getFilteredWithExceeded
+            (List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+
+        Map <LocalDate, Integer> mapMeal = new HashMap<>();
+        LocalDate localDate;
+        List <UserMealWithExceed> userMealWithExceedList = new ArrayList<>();
+
+        for (UserMeal meal: mealList) {
+            localDate = meal.getDateTime().toLocalDate();
+            if (mapMeal.containsKey(localDate)) {
+                mapMeal.put(localDate, mapMeal.get(localDate) + meal.getCalories());
+            } else {
+                mapMeal.put(meal.getDateTime().toLocalDate(), meal.getCalories());
+            }
+        }
+
+        for (UserMeal meal: mealList) {
+            if (TimeUtil.isBetween(meal.getDateTime().toLocalTime(), startTime, endTime)) {
+                userMealWithExceedList.add(
+                        new UserMealWithExceed(
+                                meal.getDateTime(),
+                                meal.getDescription(),
+                                meal.getCalories(),
+                                (mapMeal.get(meal.getDateTime().toLocalDate()) > caloriesPerDay)
+                        ));
+            }
+        }
+        return userMealWithExceedList;
     }
 }
